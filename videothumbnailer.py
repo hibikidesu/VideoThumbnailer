@@ -94,8 +94,8 @@ def main():
     parser.add_argument("video_path", help="Video to process")
     parser.add_argument("amount", type=int, help="Amount of thumbnails to generate")
     parser.add_argument("-file_format", type=str, help="Video to process", default="png")
-    parser.add_argument("-slow", type=bool, help="Force slower method on videos over 30min long")
-    parser.add_argument("-o", "-output", type=str, help="Image output directory", default=".")
+    parser.add_argument("-slow", help="Force slower method on videos over 30min long", action="store_true")
+    parser.add_argument("-output", "-o", type=str, help="Image output directory", default=".")
     args = parser.parse_args()
 
     code = generate_thumbnails(args.amount, args.video_path, args.slow, args.output, args.file_format)
