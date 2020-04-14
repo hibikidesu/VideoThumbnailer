@@ -24,8 +24,7 @@ def seconds_to_timestamp(video_time: int) -> str:
 def _generate_individual_thumb(save_name: str, video_p: str, ts: str):
     """Generates an individual thumbnail with a given name, video path, timestamp"""
     stream = ffmpeg.input(video_p, ss=ts)
-    stream = ffmpeg.overwrite_output(stream)
-    stream = ffmpeg.output(stream, save_name, vframes=1)
+    stream = ffmpeg.output(stream, save_name, vframes=1).overwrite_output()
     ffmpeg.run(stream)
 
 
@@ -87,8 +86,7 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool, out_dir:
     else:
         stream = ffmpeg.input(video_path)
         stream = ffmpeg.filter(stream, "fps", fps=1 / time_split)
-        stream = ffmpeg.overwrite_output(stream)
-        stream = ffmpeg.output(stream, "{}/{}_%d.{}".format(out_dir, video_name, file_format))
+        stream = ffmpeg.output(stream, "{}/{}_%d.{}".format(out_dir, video_name, file_format)).overwrite_output()
         ffmpeg.run(stream)
 
     return 0
