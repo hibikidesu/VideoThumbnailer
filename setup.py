@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="videothumbnailer",
-    version="1.2",
+    version="1.3",
     description="Creates x amount of thumbnails based video length",
     author="Hibiki",
     py_modules=["videothumbnailer"],
