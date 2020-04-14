@@ -40,7 +40,7 @@ def _get_video_duration(video_p: str) -> str:
     return result.stdout.decode()
 
 
-def generate_thumbnails(amount: int, video_path: str, force_slow: bool, file_format: str = "png") -> int:
+def generate_thumbnails(amount: int, video_path: str, force_slow: bool, out_dir: str, file_format: str = "png") -> int:
     """
     Generates thumbnails based with the amount of thumbnails to generate
     and the video path
@@ -49,6 +49,7 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool, file_for
         amount - Amount of images to create
         video_path - Direct path to video
         force_slow - Force slower method if video over 30min
+        out_dir - Output directory
         file_format - Image file format to output
 
     Out:
@@ -75,14 +76,14 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool, file_for
         for x in range(amount):
             timestamp = seconds_to_timestamp(int(time_split * x))
             _generate_individual_thumb(
-                "{}_{}.{}".format(video_name, x, file_format),
+                "{}/{}_{}.{}".format(out_dir, video_name, x, file_format),
                 video_path,
                 timestamp
             )
     else:
         stream = ffmpeg.input(video_path)
         stream = ffmpeg.filter(stream, "fps", fps=1 / time_split)
-        stream = ffmpeg.output(stream, "{}_%d.{}".format(video_name, file_format))
+        stream = ffmpeg.output(stream, "{}/{}_%d.{}".format(out_dir, video_name, file_format))
         ffmpeg.run(stream)
 
     return 0
@@ -94,9 +95,10 @@ def main():
     parser.add_argument("amount", type=int, help="Amount of thumbnails to generate")
     parser.add_argument("-file_format", type=str, help="Video to process", default="png")
     parser.add_argument("-slow", type=bool, help="Force slower method on videos over 30min long")
+    parser.add_argument("-o", "-output", type=str, help="Image output directory", default=".")
     args = parser.parse_args()
 
-    code = generate_thumbnails(args.amount, args.video_path, args.slow, args.file_format)
+    code = generate_thumbnails(args.amount, args.video_path, args.slow, args.output, args.file_format)
     print([
         "Generated thumbnails",
         "Invalid video path!",
