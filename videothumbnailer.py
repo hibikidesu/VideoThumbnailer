@@ -1,8 +1,7 @@
 import ffmpeg
-from ffprobe import FFProbe
+import subprocess
 import argparse
 import os
-from datetime import timedelta
 
 
 def timestamp_to_seconds(video_time: str) -> int:
@@ -28,7 +27,20 @@ def _generate_individual_thumb(save_name: str, video_p: str, ts: str):
     ffmpeg.run(stream)
 
 
-def generate_thumbnails(amount: int, video_path: str, file_format: str = "png") -> int:
+def _get_video_duration(video_p: str) -> str:
+    """Get a video duration based off of file path"""
+    result = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries",
+         "format=duration", "-of",
+         "default=noprint_wrappers=1:nokey=1", "-sexagesimal",
+         video_p
+         ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+    return result.stdout.decode()
+
+
+def generate_thumbnails(amount: int, video_path: str, force_slow: bool, file_format: str = "png") -> int:
     """
     Generates thumbnails based with the amount of thumbnails to generate
     and the video path
@@ -36,6 +48,8 @@ def generate_thumbnails(amount: int, video_path: str, file_format: str = "png") 
     In:
         amount - Amount of images to create
         video_path - Direct path to video
+        force_slow - Force slower method if video over 30min
+        file_format - Image file format to output
 
     Out:
         Error codes can either be:
@@ -46,8 +60,8 @@ def generate_thumbnails(amount: int, video_path: str, file_format: str = "png") 
     if not os.path.exists(video_path):
         return 1
 
-    probe = FFProbe(video_path)
-    duration = probe.metadata.get("Duration")
+    duration = _get_video_duration(video_path)
+    print(duration)
     if not duration:
         return 2
 
@@ -57,7 +71,7 @@ def generate_thumbnails(amount: int, video_path: str, file_format: str = "png") 
     video_name = video_path.partition(".")[0]
 
     # Will take a megu long time if run 2nd option so get each individual frame at each point here
-    if video_time >= 1800:
+    if video_time >= 1800 and not force_slow:
         for x in range(amount):
             timestamp = seconds_to_timestamp(int(time_split * x))
             _generate_individual_thumb(
@@ -76,12 +90,13 @@ def generate_thumbnails(amount: int, video_path: str, file_format: str = "png") 
 
 def main():
     parser = argparse.ArgumentParser(description="Creates x amount of thumbnails based video length")
-    parser.add_argument("amount", type=int, help="Amount of thumbnails to generate")
     parser.add_argument("video_path", help="Video to process")
+    parser.add_argument("amount", type=int, help="Amount of thumbnails to generate")
     parser.add_argument("-file_format", type=str, help="Video to process", default="png")
+    parser.add_argument("-slow", type=bool, help="Force slower method on videos over 30min long")
     args = parser.parse_args()
 
-    code = generate_thumbnails(args.amount, args.video_path, args.file_format)
+    code = generate_thumbnails(args.amount, args.video_path, args.slow, args.file_format)
     print([
         "Generated thumbnails",
         "Invalid video path!",
