@@ -77,16 +77,16 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool, out_dir:
     # Will take a megu long time if run 2nd option so get each individual frame at each point here
     if video_time >= 1800 and not force_slow:
         for x in range(amount):
-            timestamp = seconds_to_timestamp(int(time_split * x))
+            timestamp = seconds_to_timestamp(int(time_split * (x + 1)))
             _generate_individual_thumb(
-                "{}/{}_{}.{}".format(out_dir, video_name, x, file_format),
+                os.path.join(out_dir, "{}_{}.{}".format(video_name, x, file_format)),
                 video_path,
                 timestamp
             )
     else:
         stream = ffmpeg.input(video_path)
         stream = ffmpeg.filter(stream, "fps", fps=1 / time_split)
-        stream = ffmpeg.output(stream, "{}/{}_%d.{}".format(out_dir, video_name, file_format)).overwrite_output()
+        stream = ffmpeg.output(stream, os.path.join(out_dir, "{}_%d.{}".format(video_name, file_format))).overwrite_output()
         ffmpeg.run(stream)
 
     return 0
