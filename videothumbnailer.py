@@ -24,6 +24,7 @@ def seconds_to_timestamp(video_time: int) -> str:
 def _generate_individual_thumb(save_name: str, video_p: str, ts: str):
     """Generates an individual thumbnail with a given name, video path, timestamp"""
     stream = ffmpeg.input(video_p, ss=ts)
+    stream = ffmpeg.filter(stream, "scale", 320, -1)
     stream = ffmpeg.output(stream, save_name, vframes=1).overwrite_output()
     ffmpeg.run(stream)
 
