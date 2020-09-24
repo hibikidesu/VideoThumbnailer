@@ -21,10 +21,11 @@ def seconds_to_timestamp(video_time: int) -> str:
     return "{:02}:{:02}:{:02}.00".format(hours, minutes, seconds)
 
 
-def _generate_individual_thumb(save_name: str, video_p: str, ts: str):
+def _generate_individual_thumb(save_name: str, video_p: str, ts: str, mon: bool):
     """Generates an individual thumbnail with a given name, video path, timestamp"""
     stream = ffmpeg.input(video_p, ss=ts)
-    stream = ffmpeg.filter(stream, "scale", 320, -1)
+    if mon:
+        stream = ffmpeg.filter(stream, "scale", 320, -1)
     stream = ffmpeg.output(stream, save_name, vframes=1).overwrite_output()
     ffmpeg.run(stream)
 
@@ -42,7 +43,8 @@ def _get_video_duration(video_p: str) -> str:
     return result.stdout.decode()
 
 
-def generate_thumbnails(amount: int, video_path: str, force_slow: bool, out_dir: str, file_format: str = "png") -> int:
+def generate_thumbnails(amount: int, video_path: str, force_slow: bool,
+                        out_dir: str, file_format: str = "png", montage: bool = False) -> int:
     """
     Generates thumbnails based with the amount of thumbnails to generate
     and the video path
@@ -82,12 +84,17 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool, out_dir:
             _generate_individual_thumb(
                 os.path.join(out_dir, "{}_{}.{}".format(video_name, x, file_format)),
                 video_path,
-                timestamp
+                timestamp,
+                montage
             )
     else:
         stream = ffmpeg.input(video_path)
         stream = ffmpeg.filter(stream, "fps", fps=1 / time_split)
-        stream = ffmpeg.output(stream, os.path.join(out_dir, "{}_%d.{}".format(video_name, file_format))).overwrite_output()
+        if montage:
+            ffmpeg.filter(stream, "scale", 320, -1)
+        stream = ffmpeg.output(
+            stream, os.path.join(out_dir, "{}_%d.{}".format(video_name, file_format))
+        ).overwrite_output()
         ffmpeg.run(stream)
 
     return 0
@@ -99,10 +106,11 @@ def main():
     parser.add_argument("amount", type=int, help="Amount of thumbnails to generate")
     parser.add_argument("-file_format", type=str, help="Video to process", default="png")
     parser.add_argument("-slow", help="Force slower method on videos over 30min long", action="store_true")
+    parser.add_argument("-montage", help="Montage mode, lower res", action="store_true")
     parser.add_argument("-output", "-o", type=str, help="Image output directory", default=".")
     args = parser.parse_args()
 
-    code = generate_thumbnails(args.amount, args.video_path, args.slow, args.output, args.file_format)
+    code = generate_thumbnails(args.amount, args.video_path, args.slow, args.output, args.file_format, args.montage)
     print([
         "Generated thumbnails",
         "Invalid video path!",
