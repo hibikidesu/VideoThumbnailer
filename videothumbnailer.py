@@ -82,7 +82,7 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool,
         for x in range(amount):
             timestamp = seconds_to_timestamp(int(time_split * (x + 1)))
             _generate_individual_thumb(
-                os.path.join(out_dir, "{}_{}.{}".format(video_name, x, file_format)),
+                os.path.join(out_dir, "s{:02d}.{}".format(x+1, file_format)),
                 video_path,
                 timestamp,
                 montage
@@ -93,7 +93,7 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool,
         if montage:
             ffmpeg.filter(stream, "scale", 320, -1)
         stream = ffmpeg.output(
-            stream, os.path.join(out_dir, "{}_%d.{}".format(video_name, file_format))
+            stream, os.path.join(out_dir, "s%d.{}".format(file_format))
         ).overwrite_output()
         ffmpeg.run(stream)
 
