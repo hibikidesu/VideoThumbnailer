@@ -78,7 +78,7 @@ def generate_thumbnails(amount: int, video_path: str, force_slow: bool,
     video_name = video_path.partition(".")[0]
 
     # Will take a megu long time if run 2nd option so get each individual frame at each point here
-    if video_time >= 1800 and not force_slow:
+    if not force_slow:
         for x in range(amount):
             timestamp = seconds_to_timestamp(int(time_split * (x + 1)))
             _generate_individual_thumb(
